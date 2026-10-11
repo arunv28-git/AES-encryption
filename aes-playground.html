@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="web_standard" name="shell-type">
+  <title>AES Crypto Lab — Playground</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+
+    .obsidian-bg-glow {
+      background: 
+        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(168, 85, 247, 0.22), transparent 70%),
+        radial-gradient(circle 600px at 85% 15%, rgba(217, 70, 239, 0.16), transparent 60%),
+        radial-gradient(circle 500px at 15% 25%, rgba(139, 92, 246, 0.14), transparent 60%),
+        linear-gradient(180deg, #0c0a14 0%, #110e1f 50%, #0a0812 100%);
+    }
+
+    .vertical-light-streaks {
+      background-image: 
+        linear-gradient(90deg, 
+          transparent 0%, 
+          transparent 22%, 
+          rgba(168, 85, 247, 0.05) 26%, 
+          rgba(217, 70, 239, 0.08) 32%, 
+          rgba(192, 132, 252, 0.14) 40%, 
+          rgba(168, 85, 247, 0.04) 48%, 
+          transparent 55%, 
+          rgba(147, 51, 234, 0.07) 70%, 
+          rgba(217, 70, 239, 0.12) 78%, 
+          transparent 88%
+        );
+    }
+
+    .card-obsidian {
+      background: linear-gradient(180deg, rgba(28, 24, 42, 0.72) 0%, rgba(18, 15, 28, 0.88) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(221, 183, 255, 0.06) inset, 0 1px 2px rgba(168, 85, 247, 0.2) inset;
+    }
+
+    .card-obsidian:hover {
+      border-color: rgba(192, 132, 252, 0.28);
+    }
+
+    .input-obsidian {
+      background: rgba(14, 12, 22, 0.85);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .input-obsidian:focus {
+      border-color: rgba(192, 132, 252, 0.7);
+      box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.35), 0 0 20px -2px rgba(168, 85, 247, 0.35);
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            background: "#0c0a14",
+            surface: "#14121c",
+            "surface-container": "#201e29",
+            "surface-container-high": "#2b2834",
+            "surface-container-low": "#1c1a25",
+            primary: "#ddb7ff",
+            "primary-container": "#b76dff",
+            secondary: "#f8acff",
+            accent: "#c084fc",
+            "accent-glow": "#a855f7"
+          },
+          fontFamily: {
+            headline: ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+            body: ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="obsidian-bg-glow font-body text-slate-200 antialiased selection:bg-purple-600/30 selection:text-purple-200 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+  
+  <!-- Ambient luminous aura & vertical ray streaks -->
+  <div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div class="absolute inset-0 vertical-light-streaks opacity-90"></div>
+    <div class="absolute -top-[16%] right-[12%] w-[680px] h-[550px] rounded-full bg-gradient-to-b from-purple-500/25 via-fuchsia-600/15 to-transparent blur-[130px]"></div>
+    <div class="absolute top-[20%] -left-[180px] w-[600px] h-[600px] rounded-full bg-indigo-600/15 blur-[150px]"></div>
+    <div class="absolute top-[48%] left-1/2 -translate-x-1/2 w-[800px] h-[220px] bg-purple-500/12 blur-[110px]"></div>
+    <div class="absolute bottom-0 right-[5%] w-[500px] h-[400px] rounded-full bg-fuchsia-500/10 blur-[140px]"></div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="fixed top-0 inset-x-0 z-50 pointer-events-none pt-4 px-4 flex justify-center">
+    <div class="pointer-events-auto flex items-center justify-between gap-6 py-2 rounded-full border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37),inset_0_1px_1px_0_rgba(255,255,255,0.25)] backdrop-blur-2xl bg-white/[0.08] transition-all duration-300 w-full max-w-4xl px-6">
+      <a class="flex items-center gap-2.5 group pr-1" data-path="aes-playground" href="aes-playground.html">
+        <div class="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/90 group-hover:bg-white/20 transition-all">
+          <span class="material-symbols-outlined text-[16px]">vpn_key</span>
+        </div>
+        <span class="text-xs font-semibold text-white tracking-tight hidden sm:inline">AES Crypto Lab</span>
+      </a>
+      <nav class="flex items-center gap-3">
+        <a aria-current="page" class="px-6 py-2.5 rounded-full text-xs font-semibold bg-white text-gray-900 shadow-md transition-all" data-path="aes-playground" href="aes-playground.html">AES Playground</a>
+        <a class="px-6 py-2.5 rounded-full text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all" data-path="round-explorer" href="aes-round-explorer.html">Round Explorer</a>
+      </nav>
+      <div class="flex items-center pl-1">
+        <div class="w-8 h-8 rounded-full bg-white/15 border border-white/20 text-white flex items-center justify-center hover:bg-white/25 transition-all cursor-pointer shadow-sm">
+          <span class="material-symbols-outlined text-[17px]">person</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="w-full pt-20 pb-16 flex-1 flex flex-col items-center justify-start relative z-10">
+    <div class="w-full max-w-[760px] px-4 md:px-0 flex flex-col gap-6">
+
+      <!-- Page Title Header -->
+      <div class="text-center sm:text-left pt-3 pb-1">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/40 border border-purple-500/30 mb-2.5 backdrop-blur-md shadow-[0_0_14px_rgba(168,85,247,0.15)]">
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+          <span class="text-[11px] font-medium tracking-wide uppercase text-purple-200 font-mono">Interactive Cryptography</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">AES Playground</h1>
+        <p class="text-sm text-purple-200/70 mt-1.5">
+          Encrypt and decrypt messages using genuine browser-native Web Crypto AES-GCM (Galois/Counter Mode).
+        </p>
+      </div>
+
+      <!-- CARD 1: ENCRYPTION STAGE -->
+      <div class="w-full card-obsidian rounded-3xl p-6 sm:p-7 flex flex-col gap-6 transition-all duration-300">
+        <div class="flex items-center justify-between pb-2 border-b border-purple-500/15">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#c084fc]"></span>
+            <h2 class="text-base font-semibold text-white tracking-tight">Stage 1: Encryption Setup & Key</h2>
+          </div>
+          <span class="text-[11px] font-mono text-purple-300/60 bg-purple-950/30 px-2.5 py-0.5 rounded-full border border-purple-500/20">Authenticated AEAD</span>
+        </div>
+
+        <!-- 1. Algorithm selection -->
+        <div class="flex flex-col gap-2">
+          <label class="text-[13px] font-medium text-purple-100 flex items-center justify-between">
+            <span>1. Select Key Size</span>
+            <span class="text-[11px] text-purple-300/60 font-mono" id="key-size-hint">128-bit key (16 bytes)</span>
+          </label>
+          <div class="grid grid-cols-2 gap-3" role="tablist">
+            <button class="w-full py-2.5 px-4 rounded-full text-sm font-semibold font-mono transition-all text-purple-100 bg-gradient-to-r from-purple-600/40 to-fuchsia-600/35 border border-purple-400/60 shadow-[0_0_22px_rgba(168,85,247,0.35)]" id="btn-algo-128" type="button">
+              AES-128-GCM
+            </button>
+            <button class="w-full py-2.5 px-4 rounded-full text-sm font-semibold font-mono transition-all text-purple-300/70 bg-purple-950/20 border border-purple-500/15 hover:text-white hover:border-purple-400/30 hover:bg-purple-900/25" id="btn-algo-256" type="button">
+              AES-256-GCM
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Plaintext Input -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <label class="text-[13px] font-medium text-purple-100" for="plaintext-input">2. Plaintext to Encrypt</label>
+            <div class="flex items-center gap-2 text-xs text-purple-300/70">
+              <span class="text-purple-300/50">Mode:</span>
+              <button class="text-purple-300 hover:text-white font-medium text-xs transition-colors" id="plain-format-utf8-btn" type="button">Text (UTF-8)</button>
+              <span class="text-purple-300/30">·</span>
+              <button class="text-purple-300/60 hover:text-purple-200 text-xs transition-colors" id="plain-format-hex-btn" type="button">Hexadecimal</button>
+            </div>
+          </div>
+          <div class="relative">
+            <textarea class="w-full input-obsidian rounded-2xl p-3.5 text-sm text-slate-100 placeholder:text-purple-300/40 font-mono focus:outline-none transition-all resize-y min-h-[90px] tracking-wide" id="plaintext-input" placeholder="Type your message here..." rows="3">The quick brown fox jumps over the lazy dog</textarea>
+          </div>
+          <div class="flex justify-end">
+            <span class="text-[11px] font-mono text-purple-200 bg-purple-950/40 px-2 py-0.5 rounded-full border border-purple-500/20" id="plain-char-count">43 bytes</span>
+          </div>
+        </div>
+
+        <!-- 3. Secret Key Input -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <label class="text-[13px] font-medium text-purple-100" for="key-input">3. Secret Key (Hexadecimal)</label>
+            <button class="text-xs font-medium text-purple-300 hover:text-purple-200 transition-colors flex items-center gap-1 group" id="btn-generate-key" type="button">
+              <span class="material-symbols-outlined text-[15px] group-hover:rotate-180 transition-transform duration-300">refresh</span>
+              <span>Generate random key</span>
+            </button>
+          </div>
+          <div class="relative flex items-center">
+            <input class="w-full bg-[#0e0c16] border border-purple-500/25 rounded-2xl py-2.5 pl-3.5 pr-10 text-sm text-purple-100 placeholder:text-purple-300/40 font-mono focus:outline-none focus:border-purple-400/60 focus:ring-1 focus:ring-purple-400/40 tracking-wider transition-all" id="key-input" placeholder="Enter or generate secret key in hex" spellcheck="false" type="text" value="2b7e151628aed2a6abf7158809cf4f3c">
+            <button class="absolute right-2.5 text-purple-300 hover:text-white transition-colors p-1 flex items-center justify-center cursor-pointer" id="toggle-key-eye-btn" title="Toggle visibility" type="button">
+              <span class="material-symbols-outlined text-[18px]" id="key-eye-icon">visibility</span>
+            </button>
+          </div>
+          <span class="text-[11px] text-purple-300/60 font-mono" id="key-byte-hint">16 bytes / 128-bit key (hex representation)</span>
+        </div>
+
+        <!-- Encrypt Action Button -->
+        <div>
+          <button class="w-full py-3 px-4 rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-400 hover:to-fuchsia-400 active:from-purple-600 active:to-fuchsia-600 text-white font-semibold text-sm transition-all shadow-[0_0_28px_rgba(168,85,247,0.45)] hover:shadow-[0_0_36px_rgba(217,70,239,0.55)] hover:scale-[1.005] active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer" id="btn-encrypt" type="button">
+            <span class="material-symbols-outlined text-[18px]">lock</span>
+            <span>Encrypt Plaintext</span>
+          </button>
+        </div>
+
+        <!-- Notification Banner -->
+        <div class="items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-mono transition-all backdrop-blur-md flex border bg-purple-950/60 border-purple-500/35 text-purple-200" id="feedback-banner">
+          <span class="material-symbols-outlined text-[16px] shrink-0 text-purple-300" id="feedback-icon">check_circle</span>
+          <span class="flex-1" id="feedback-msg">Ready. Click Encrypt or Decrypt.</span>
+        </div>
+      </div>
+
+      <!-- CARD 2: CIPHERTEXT RESULT & ENCRYPTION DETAILS -->
+      <div class="w-full card-obsidian rounded-3xl p-6 sm:p-7 flex flex-col gap-4 transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
+            <h2 class="text-base font-semibold text-white tracking-tight">Generated Ciphertext</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="px-3 py-1 rounded-full bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/25 text-xs font-medium text-purple-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm" id="btn-copy-ciphertext" type="button">
+              <span class="material-symbols-outlined text-[14px]">content_copy</span>
+              <span id="copy-label">Copy</span>
+            </button>
+            <button class="px-3 py-1 rounded-full bg-gradient-to-r from-purple-600/30 to-fuchsia-600/30 hover:from-purple-500/40 hover:to-fuchsia-500/40 border border-purple-400/40 text-xs font-medium text-purple-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm" id="btn-use-ciphertext" type="button" title="Transfer this ciphertext into the decryption input below">
+              <span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+              <span>Use in Decrypt</span>
+            </button>
+          </div>
+        </div>
+
+        <p class="text-xs text-purple-200/70">
+          Wire-format payload containing the 12-byte Nonce, encrypted ciphertext body, and 16-byte GHASH tag:
+        </p>
+
+        <!-- Ciphertext display area -->
+        <div class="relative">
+          <textarea class="w-full input-obsidian rounded-2xl p-3.5 text-sm text-purple-100 placeholder:text-purple-300/40 font-mono focus:outline-none transition-all resize-y min-h-[90px] tracking-wider leading-relaxed select-all" id="ciphertext-output" placeholder="Encrypted output will appear here..." readonly rows="3"></textarea>
+        </div>
+
+        <!-- Output format switcher -->
+        <div class="flex flex-wrap items-center justify-between text-xs pt-0.5 gap-2">
+          <div class="flex items-center gap-2 text-purple-300/60 font-mono">
+            <span class="text-slate-400 font-sans text-xs">Representation:</span>
+            <button class="text-purple-300 font-semibold hover:underline transition-colors" id="fmt-hex-btn" type="button">Hex</button>
+            <span class="text-purple-300/30">·</span>
+            <button class="text-purple-300/60 hover:text-purple-200 transition-colors" id="fmt-b64-btn" type="button">Base64</button>
+            <span class="text-purple-300/30">·</span>
+            <button class="text-purple-300/60 hover:text-purple-200 transition-colors" id="fmt-bytes-btn" type="button">Bytes</button>
+          </div>
+          <button class="text-xs text-purple-300/70 hover:text-white flex items-center gap-1 transition-colors group cursor-pointer" id="toggle-details-btn" type="button">
+            <span>Encryption details</span>
+            <span class="material-symbols-outlined text-[16px] transition-transform duration-200 group-hover:text-purple-300" id="details-arrow">expand_more</span>
+          </button>
+        </div>
+
+        <!-- Hints -->
+        <div class="p-3 rounded-2xl bg-purple-950/20 border border-purple-500/15 text-xs text-purple-200/80 flex items-start gap-2">
+          <span class="material-symbols-outlined text-[16px] text-purple-300 shrink-0 mt-0.5">lightbulb</span>
+          <span><strong>Next step:</strong> Click <em>Use in Decrypt</em> (or paste this ciphertext below) with the same key to verify full plaintext recovery.</span>
+        </div>
+
+        <!-- Collapsible Details Panel -->
+        <div class="hidden pt-3 border-t border-purple-500/15 mt-1 flex flex-col gap-3 text-xs" id="details-panel">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-purple-300/70">
+              <span class="font-medium text-purple-200">96-bit Initialization Vector (Nonce):</span>
+              <span class="font-mono text-[11px] text-purple-300/60">12 bytes</span>
+            </div>
+            <div class="bg-[#0b0914]/90 border border-purple-500/20 rounded-2xl p-2.5 font-mono text-[11px] text-purple-300 break-all select-all shadow-inner" id="detail-iv-display">—</div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-purple-300/70">
+              <span class="font-medium text-purple-200">128-bit Authentication Tag (MAC):</span>
+              <span class="font-mono text-[11px] text-fuchsia-300" id="detail-tag-status">Verified GHASH</span>
+            </div>
+            <div class="bg-[#0b0914]/90 border border-purple-500/20 rounded-2xl p-2.5 font-mono text-[11px] text-fuchsia-300 break-all select-all shadow-inner" id="detail-tag-display">—</div>
+          </div>
+          <p class="text-[11px] text-purple-300/70 leading-relaxed bg-purple-950/20 p-3 rounded-2xl border border-purple-500/15">
+            <strong class="text-purple-200">AEAD Assurance:</strong> AES-GCM guarantees both confidentiality and integrity. The authentication tag detects any unauthorized modification to the ciphertext or nonce, causing decryption to immediately reject fraudulent payloads.
+          </p>
+        </div>
+      </div>
+
+      <!-- CARD 3: DECRYPTION STAGE -->
+      <div class="w-full card-obsidian rounded-3xl p-6 sm:p-7 flex flex-col gap-6 transition-all duration-300">
+        <div class="flex items-center justify-between pb-2 border-b border-purple-500/15">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-fuchsia-400 shadow-[0_0_8px_#e879f9]"></span>
+            <h2 class="text-base font-semibold text-white tracking-tight">Stage 2: Decryption & Verification</h2>
+          </div>
+          <span class="text-[11px] font-mono text-purple-300/60 bg-purple-950/30 px-2.5 py-0.5 rounded-full border border-purple-500/20">Authenticated Match</span>
+        </div>
+
+        <!-- 1. Ciphertext to Decrypt -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <label class="text-[13px] font-medium text-purple-100" for="decrypt-ciphertext-input">1. Ciphertext to Decrypt</label>
+            <div class="flex items-center gap-2 text-xs text-purple-300/70 font-mono">
+              <span class="text-slate-400 font-sans text-xs">Format:</span>
+              <button class="text-purple-300 font-semibold hover:underline transition-colors" id="decrypt-fmt-hex-btn" type="button">Hex</button>
+              <span class="text-purple-300/30">·</span>
+              <button class="text-purple-300/60 hover:text-purple-200 transition-colors" id="decrypt-fmt-b64-btn" type="button">Base64</button>
+              <span class="text-purple-300/30">·</span>
+              <button class="text-purple-300/60 hover:text-purple-200 transition-colors" id="decrypt-fmt-bytes-btn" type="button">Bytes</button>
+            </div>
+          </div>
+          <div class="relative">
+            <textarea class="w-full input-obsidian rounded-2xl p-3.5 text-sm text-purple-100 placeholder:text-purple-300/40 font-mono focus:outline-none transition-all resize-y min-h-[90px] tracking-wider leading-relaxed" id="decrypt-ciphertext-input" placeholder="Paste or edit ciphertext payload here (Nonce + Ciphertext + Tag)..." rows="3"></textarea>
+          </div>
+          <span class="text-[11px] text-purple-300/60">Accepts combined payload (12-byte Nonce + Ciphertext + 16-byte Tag) or uses metadata from Stage 1.</span>
+        </div>
+
+        <!-- Decrypt Button -->
+        <div>
+          <button class="w-full py-3 px-4 rounded-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 active:from-fuchsia-700 active:to-purple-700 text-white font-semibold text-sm transition-all shadow-[0_0_28px_rgba(217,70,239,0.45)] hover:shadow-[0_0_36px_rgba(232,121,249,0.55)] hover:scale-[1.005] active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer" id="btn-decrypt" type="button">
+            <span class="material-symbols-outlined text-[18px]">lock_open</span>
+            <span>Decrypt Ciphertext</span>
+          </button>
+        </div>
+
+        <!-- 2. Recovered Plaintext Output Area -->
+        <div class="flex flex-col gap-2 pt-1 border-t border-purple-500/15">
+          <div class="flex items-center justify-between">
+            <label class="text-[13px] font-medium text-emerald-300 flex items-center gap-1.5" for="decrypted-plaintext-output">
+              <span class="material-symbols-outlined text-[16px]">verified</span>
+              <span>Decrypted Plaintext Output</span>
+            </label>
+            <span class="text-[11px] font-mono text-emerald-300/80 bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-500/25" id="decrypt-status-badge">Awaiting Decrypt</span>
+          </div>
+          <div class="relative">
+            <textarea class="w-full input-obsidian rounded-2xl p-3.5 text-sm text-emerald-100 placeholder:text-purple-300/40 font-mono focus:outline-none transition-all resize-y min-h-[90px] tracking-wide select-all" id="decrypted-plaintext-output" placeholder="Recovered plaintext will appear here after authentication succeeds..." readonly rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROMO CARD: LINK TO ROUND EXPLORER -->
+      <div class="w-full card-obsidian rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300">
+        <div class="flex flex-col gap-1">
+          <h3 class="text-sm font-semibold text-white tracking-tight">Want to see how AES calculates each round?</h3>
+          <p class="text-xs text-purple-200/70">Explore the underlying Rijndael block cipher: SubBytes, ShiftRows, MixColumns, and AddRoundKey.</p>
+        </div>
+        <div class="shrink-0">
+          <a class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600/30 to-fuchsia-600/25 hover:from-purple-500 hover:to-fuchsia-500 text-xs font-semibold text-purple-100 hover:text-white border border-purple-400/35 hover:border-purple-300 transition-all shadow-[0_0_18px_rgba(168,85,247,0.25)] group" data-path="round-explorer" href="aes-round-explorer.html">
+            <span class="material-symbols-outlined text-[15px] text-purple-300 group-hover:text-white transition-colors">bolt</span>
+            <span>Open Round Explorer →</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full bg-[#0a0812]/80 backdrop-blur-md border-t border-purple-500/15 py-6 mt-auto relative z-10">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-purple-300/60">
+      <span>AES Crypto Lab • Educational Web Crypto Demonstration</span>
+      <div class="flex items-center gap-4 text-[11px] font-mono text-purple-300/50">
+        <span>FIPS PUB 197</span>
+        <span>•</span>
+        <span>NIST SP 800-38D</span>
+        <span>•</span>
+        <span>BROWSER-NATIVE</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (() => {
+    // Application State
+    const state = {
+      keySize: 128,          // 128 or 256
+      plainFormat: 'utf8',   // 'utf8' or 'hex'
+      cipherFormat: 'hex',   // 'hex', 'b64', 'bytes'
+      decryptFormat: 'hex',  // 'hex', 'b64', 'bytes'
+      rawIvBytes: null,
+      rawCipherBytes: null,
+      rawTagBytes: null,
+      isKeyMasked: false
+    };
+
+    // Encoding & Parsing Utilities
+    function hexToBytes(hexStr) {
+      if (!hexStr) return null;
+      const clean = hexStr.replace(/\s+/g, '');
+      if (clean.length % 2 !== 0) return null;
+      if (!/^[0-9a-fA-F]*$/.test(clean)) return null;
+      const bytes = new Uint8Array(clean.length / 2);
+      for (let i = 0; i < clean.length; i += 2) {
+        const b = parseInt(clean.substr(i, 2), 16);
+        if (isNaN(b)) return null;
+        bytes[i / 2] = b;
+      }
+      return bytes;
+    }
+
+    function bytesToHex(bytes, spaced = false) {
+      if (!bytes) return '';
+      const arr = Array.from(bytes).map(b => b.toString(16).padStart(2, '0'));
+      return spaced ? arr.join(' ') : arr.join('');
+    }
+
+    function bytesToBase64(bytes) {
+      let binary = '';
+      const len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+
+    function base64ToBytes(b64) {
+      try {
+        const clean = b64.replace(/\s+/g, '');
+        if (!clean) return null;
+        // Check valid base64 pattern
+        if (!/^[A-Za-z0-9+/=]+$/.test(clean)) return null;
+        const bin = window.atob(clean);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return bytes;
+      } catch(e) {
+        return null;
+      }
+    }
+
+    function bytesToByteArrayString(bytes) {
+      return '[' + Array.from(bytes).map(b => '0x' + b.toString(16).padStart(2, '0')).join(', ') + ']';
+    }
+
+    function parseBytesInput(str) {
+      if (!str) return null;
+      const clean = str.replace(/[\[\]\s]/g, '');
+      const parts = clean.split(',').filter(p => p.length > 0);
+      const res = new Uint8Array(parts.length);
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i].trim();
+        const num = p.startsWith('0x') || p.startsWith('0X') ? parseInt(p, 16) : parseInt(p, 10);
+        if (isNaN(num) || num < 0 || num > 255) return null;
+        res[i] = num;
+      }
+      return res;
+    }
+
+    function generateRandomBytes(count) {
+      const arr = new Uint8Array(count);
+      if (window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(arr);
+      } else {
+        throw new Error("Cryptographically secure random values not supported in this environment.");
+      }
+      return arr;
+    }
+
+    // DOM Elements
+    const algo128Btn = document.getElementById('btn-algo-128');
+    const algo256Btn = document.getElementById('btn-algo-256');
+    const keySizeHint = document.getElementById('key-size-hint');
+
+    const plainInput = document.getElementById('plaintext-input');
+    const plainCharCount = document.getElementById('plain-char-count');
+    const plainUtf8Btn = document.getElementById('plain-format-utf8-btn');
+    const plainHexBtn = document.getElementById('plain-format-hex-btn');
+
+    const keyInput = document.getElementById('key-input');
+    const keyByteHint = document.getElementById('key-byte-hint');
+    const genKeyBtn = document.getElementById('btn-generate-key');
+    const toggleKeyEyeBtn = document.getElementById('toggle-key-eye-btn');
+    const keyEyeIcon = document.getElementById('key-eye-icon');
+
+    const encryptBtn = document.getElementById('btn-encrypt');
+    const decryptBtn = document.getElementById('btn-decrypt');
+    const feedbackBanner = document.getElementById('feedback-banner');
+    const feedbackMsg = document.getElementById('feedback-msg');
+    const feedbackIcon = document.getElementById('feedback-icon');
+
+    const cipherOutput = document.getElementById('ciphertext-output');
+    const copyBtn = document.getElementById('btn-copy-ciphertext');
+    const copyLabel = document.getElementById('copy-label');
+    const useCipherBtn = document.getElementById('btn-use-ciphertext');
+
+    const fmtHexBtn = document.getElementById('fmt-hex-btn');
+    const fmtB64Btn = document.getElementById('fmt-b64-btn');
+    const fmtBytesBtn = document.getElementById('fmt-bytes-btn');
+
+    const decryptCipherInput = document.getElementById('decrypt-ciphertext-input');
+    const decryptFmtHexBtn = document.getElementById('decrypt-fmt-hex-btn');
+    const decryptFmtB64Btn = document.getElementById('decrypt-fmt-b64-btn');
+    const decryptFmtBytesBtn = document.getElementById('decrypt-fmt-bytes-btn');
+    const decryptedOutput = document.getElementById('decrypted-plaintext-output');
+    const decryptStatusBadge = document.getElementById('decrypt-status-badge');
+
+    const toggleDetailsBtn = document.getElementById('toggle-details-btn');
+    const detailsArrow = document.getElementById('details-arrow');
+    const detailsPanel = document.getElementById('details-panel');
+    const detailIvDisplay = document.getElementById('detail-iv-display');
+    const detailTagDisplay = document.getElementById('detail-tag-display');
+    const detailTagStatus = document.getElementById('detail-tag-status');
+
+    function showFeedback(type, text) {
+      feedbackBanner.classList.remove('hidden', 'bg-purple-950/60', 'border-purple-500/35', 'text-purple-200', 'bg-rose-950/70', 'border-rose-500/40', 'text-rose-300', 'bg-fuchsia-950/70', 'border-fuchsia-500/40', 'text-fuchsia-200');
+      feedbackBanner.classList.add('flex', 'border');
+
+      if (type === 'success') {
+        feedbackBanner.classList.add('bg-purple-950/60', 'border-purple-500/35', 'text-purple-200');
+        feedbackIcon.textContent = 'check_circle';
+        feedbackIcon.className = 'material-symbols-outlined text-[16px] shrink-0 text-purple-300';
+      } else if (type === 'error') {
+        feedbackBanner.classList.add('bg-rose-950/70', 'border-rose-500/40', 'text-rose-300');
+        feedbackIcon.textContent = 'error';
+        feedbackIcon.className = 'material-symbols-outlined text-[16px] shrink-0 text-rose-400';
+      } else {
+        feedbackBanner.classList.add('bg-fuchsia-950/70', 'border-fuchsia-500/40', 'text-fuchsia-200');
+        feedbackIcon.textContent = 'info';
+        feedbackIcon.className = 'material-symbols-outlined text-[16px] shrink-0 text-fuchsia-300';
+      }
+      feedbackMsg.textContent = text;
+    }
+
+    function updatePlainLength() {
+      let len = 0;
+      if (state.plainFormat === 'utf8') {
+        len = new TextEncoder().encode(plainInput.value).length;
+      } else {
+        const b = hexToBytes(plainInput.value);
+        len = b ? b.length : 0;
+      }
+      plainCharCount.textContent = `${len} byte${len === 1 ? '' : 's'}`;
+    }
+
+    function renderCiphertext() {
+      if (!state.rawCipherBytes || !state.rawIvBytes || !state.rawTagBytes) {
+        cipherOutput.value = '';
+        return;
+      }
+
+      // Packed wire format: Nonce (12 bytes) + Ciphertext + Tag (16 bytes)
+      const fullPayload = new Uint8Array(state.rawIvBytes.length + state.rawCipherBytes.length + state.rawTagBytes.length);
+      fullPayload.set(state.rawIvBytes, 0);
+      fullPayload.set(state.rawCipherBytes, state.rawIvBytes.length);
+      fullPayload.set(state.rawTagBytes, state.rawIvBytes.length + state.rawCipherBytes.length);
+
+      if (state.cipherFormat === 'hex') {
+        cipherOutput.value = bytesToHex(fullPayload);
+      } else if (state.cipherFormat === 'b64') {
+        cipherOutput.value = bytesToBase64(fullPayload);
+      } else if (state.cipherFormat === 'bytes') {
+        cipherOutput.value = bytesToByteArrayString(fullPayload);
+      }
+    }
+
+    function updateAlgoButtons() {
+      if (state.keySize === 128) {
+        algo128Btn.className = 'w-full py-2.5 px-4 rounded-full text-sm font-semibold font-mono transition-all text-purple-100 bg-gradient-to-r from-purple-600/40 to-fuchsia-600/35 border border-purple-400/60 shadow-[0_0_22px_rgba(168,85,247,0.35)]';
+        algo256Btn.className = 'w-full py-2.5 px-4 rounded-full text-sm font-semibold font-mono transition-all text-purple-300/70 bg-purple-950/20 border border-purple-500/15 hover:text-white hover:border-purple-400/30 hover:bg-purple-900/25';
+        keySizeHint.textContent = '128-bit key (16 bytes)';
+        keyByteHint.textContent = '16 bytes / 128-bit key (hex representation)';
+      } else {
+        algo256Btn.className = 'w-full py-2.5 px-4 rounded-full text-sm font-semibold font-mono transition-all text-purple-100 bg-gradient-to-r from-purple-600/40 to-fuchsia-600/35 border border-purple-400/60 shadow-[0_0_22px_rgba(168,85,247,0.35)]';
+        algo128Btn.className = 'w-full py-2.5 px-4 rounded-full text-sm font-semibold font-mono transition-all text-purple-300/70 bg-purple-950/20 border border-purple-500/15 hover:text-white hover:border-purple-400/30 hover:bg-purple-900/25';
+        keySizeHint.textContent = '256-bit key (32 bytes)';
+        keyByteHint.textContent = '32 bytes / 256-bit key (hex representation)';
+      }
+    }
+
+    function generateNewKey() {
+      const byteCount = state.keySize / 8;
+      const randomBytes = generateRandomBytes(byteCount);
+      keyInput.value = bytesToHex(randomBytes);
+      showFeedback('info', `Generated cryptographically secure random ${state.keySize}-bit key.`);
+    }
+
+    // Encryption Execution
+    async function performEncrypt() {
+      try {
+        const rawKeyText = keyInput.value.trim();
+        const keyBytes = hexToBytes(rawKeyText);
+        const reqKeyBytes = state.keySize / 8;
+
+        if (!keyBytes || keyBytes.length !== reqKeyBytes) {
+          throw new Error(`Invalid key length: AES-${state.keySize}-GCM requires exactly ${reqKeyBytes} bytes (${state.keySize} bits) as a 64-hex string.`);
+        }
+
+        let dataBytes;
+        if (state.plainFormat === 'utf8') {
+          dataBytes = new TextEncoder().encode(plainInput.value);
+        } else {
+          dataBytes = hexToBytes(plainInput.value);
+          if (!dataBytes) throw new Error('Invalid hexadecimal plaintext: must be an even number of hex characters (0-9, a-f).');
+        }
+
+        // Fresh 96-bit (12-byte) initialization vector nonce for every encryption
+        const iv = generateRandomBytes(12);
+        state.rawIvBytes = iv;
+
+        if (!window.crypto || !window.crypto.subtle) {
+          throw new Error('Web Crypto API is not available. Please access via localhost or HTTPS.');
+        }
+
+        const cryptoKey = await window.crypto.subtle.importKey(
+          'raw',
+          keyBytes,
+          { name: 'AES-GCM' },
+          false,
+          ['encrypt']
+        );
+
+        const encrypted = await window.crypto.subtle.encrypt(
+          {
+            name: 'AES-GCM',
+            iv: iv,
+            tagLength: 128
+          },
+          cryptoKey,
+          dataBytes
+        );
+
+        const totalResultBytes = new Uint8Array(encrypted);
+        const tagOffset = totalResultBytes.length - 16;
+        state.rawCipherBytes = totalResultBytes.slice(0, tagOffset);
+        state.rawTagBytes = totalResultBytes.slice(tagOffset);
+
+        renderCiphertext();
+
+        // Also populate decryption input by default so user can decrypt right away
+        decryptCipherInput.value = cipherOutput.value;
+        setDecryptFormat(state.cipherFormat);
+
+        detailIvDisplay.textContent = bytesToHex(state.rawIvBytes, true);
+        detailTagDisplay.textContent = bytesToHex(state.rawTagBytes, true);
+        detailTagStatus.textContent = '128-bit GHASH Tag Ready';
+        detailTagStatus.className = 'font-mono text-[11px] text-fuchsia-300';
+
+        decryptStatusBadge.textContent = 'Awaiting Decrypt';
+        decryptStatusBadge.className = 'text-[11px] font-mono text-purple-300/80 bg-purple-950/40 px-2 py-0.5 rounded-full border border-purple-500/25';
+
+        showFeedback('success', `Message encrypted successfully with AES-${state.keySize}-GCM! Nonce and tag stored.`);
+      } catch(err) {
+        showFeedback('error', err.message || 'Encryption failed.');
+      }
+    }
+
+    // Decryption Execution
+    async function performDecrypt() {
+      try {
+        const rawKeyText = keyInput.value.trim();
+        const keyBytes = hexToBytes(rawKeyText);
+        const reqKeyBytes = state.keySize / 8;
+
+        if (!keyBytes || keyBytes.length !== reqKeyBytes) {
+          throw new Error(`Key mismatch: Decryption requires a valid ${reqKeyBytes}-byte (${state.keySize}-bit) hexadecimal key.`);
+        }
+
+        const textVal = decryptCipherInput.value.trim();
+        if (!textVal) {
+          throw new Error('Please enter or paste the ciphertext payload to decrypt.');
+        }
+
+        let rawCombinedPayload = null;
+
+        if (state.decryptFormat === 'hex') {
+          rawCombinedPayload = hexToBytes(textVal);
+          if (!rawCombinedPayload) throw new Error('Invalid Hex format: Ensure ciphertext is a valid even-length hex string.');
+        } else if (state.decryptFormat === 'b64') {
+          rawCombinedPayload = base64ToBytes(textVal);
+          if (!rawCombinedPayload) throw new Error('Invalid Base64 format: String contains invalid characters or incorrect padding.');
+        } else {
+          rawCombinedPayload = parseBytesInput(textVal);
+          if (!rawCombinedPayload) throw new Error('Invalid Byte Array format: Expected format [0x12, 0xab, ...].');
+        }
+
+        if (rawCombinedPayload.length < 28) {
+          throw new Error('Ciphertext payload too short: An AES-GCM wire payload must be at least 28 bytes (12-byte Nonce + 16-byte Tag).');
+        }
+
+        // Unpack: 12-byte IV + Ciphertext body + 16-byte Tag
+        const iv = rawCombinedPayload.slice(0, 12);
+        const fullEncryptedForCrypto = rawCombinedPayload.slice(12); // includes ciphertext and 16-byte tag
+        const cipherBody = fullEncryptedForCrypto.slice(0, fullEncryptedForCrypto.length - 16);
+        const tag = fullEncryptedForCrypto.slice(fullEncryptedForCrypto.length - 16);
+
+        // Update displayed details
+        detailIvDisplay.textContent = bytesToHex(iv, true);
+        detailTagDisplay.textContent = bytesToHex(tag, true);
+
+        if (!window.crypto || !window.crypto.subtle) {
+          throw new Error('Web Crypto API is not available.');
+        }
+
+        const cryptoKey = await window.crypto.subtle.importKey(
+          'raw',
+          keyBytes,
+          { name: 'AES-GCM' },
+          false,
+          ['decrypt']
+        );
+
+        let decrypted;
+        try {
+          decrypted = await window.crypto.subtle.decrypt(
+            {
+              name: 'AES-GCM',
+              iv: iv,
+              tagLength: 128
+            },
+            cryptoKey,
+            fullEncryptedForCrypto
+          );
+        } catch(decryptError) {
+          throw new Error('Decryption failed: authentication verification failed (GHASH tag mismatch, corrupted ciphertext, or wrong key/nonce).');
+        }
+
+        const decryptedBytes = new Uint8Array(decrypted);
+
+        // Render recovered plaintext
+        if (state.plainFormat === 'utf8') {
+          try {
+            decryptedOutput.value = new TextDecoder('utf-8', { fatal: true }).decode(decryptedBytes);
+          } catch(e) {
+            // If not UTF-8 valid, display in hex
+            decryptedOutput.value = bytesToHex(decryptedBytes);
+          }
+        } else {
+          decryptedOutput.value = bytesToHex(decryptedBytes);
+        }
+
+        detailTagStatus.textContent = 'Authenticated Match ✓';
+        detailTagStatus.className = 'font-mono text-[11px] text-emerald-400 font-semibold';
+
+        decryptStatusBadge.textContent = 'Verification Passed ✓';
+        decryptStatusBadge.className = 'text-[11px] font-mono text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]';
+
+        showFeedback('success', 'Decryption successful! Ciphertext authentication verified and original plaintext fully recovered.');
+      } catch(err) {
+        decryptedOutput.value = '';
+        detailTagStatus.textContent = 'Authentication Failed ✗';
+        detailTagStatus.className = 'font-mono text-[11px] text-rose-400 font-semibold';
+
+        decryptStatusBadge.textContent = 'Authentication Failed ✗';
+        decryptStatusBadge.className = 'text-[11px] font-mono text-rose-300 bg-rose-950/60 px-2 py-0.5 rounded-full border border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.3)]';
+
+        showFeedback('error', err.message || 'Decryption failed.');
+      }
+    }
+
+    // Output Format Switchers
+    function setFormat(fmt) {
+      state.cipherFormat = fmt;
+      [fmtHexBtn, fmtB64Btn, fmtBytesBtn].forEach(b => {
+        b.className = 'text-purple-300/60 hover:text-purple-200 transition-colors';
+      });
+      if (fmt === 'hex') {
+        fmtHexBtn.className = 'text-purple-300 font-semibold hover:underline transition-colors';
+      } else if (fmt === 'b64') {
+        fmtB64Btn.className = 'text-purple-300 font-semibold hover:underline transition-colors';
+      } else {
+        fmtBytesBtn.className = 'text-purple-300 font-semibold hover:underline transition-colors';
+      }
+      renderCiphertext();
+    }
+
+    // Decrypt Input Format Switchers
+    function setDecryptFormat(fmt) {
+      state.decryptFormat = fmt;
+      [decryptFmtHexBtn, decryptFmtB64Btn, decryptFmtBytesBtn].forEach(b => {
+        b.className = 'text-purple-300/60 hover:text-purple-200 transition-colors';
+      });
+      if (fmt === 'hex') {
+        decryptFmtHexBtn.className = 'text-purple-300 font-semibold hover:underline transition-colors';
+      } else if (fmt === 'b64') {
+        decryptFmtB64Btn.className = 'text-purple-300 font-semibold hover:underline transition-colors';
+      } else {
+        decryptFmtBytesBtn.className = 'text-purple-300 font-semibold hover:underline transition-colors';
+      }
+    }
+
+    // Event Listeners
+    algo128Btn.addEventListener('click', () => {
+      state.keySize = 128;
+      updateAlgoButtons();
+      keyInput.value = '2b7e151628aed2a6abf7158809cf4f3c';
+      performEncrypt();
+    });
+
+    algo256Btn.addEventListener('click', () => {
+      state.keySize = 256;
+      updateAlgoButtons();
+      keyInput.value = '603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4';
+      performEncrypt();
+    });
+
+    plainUtf8Btn.addEventListener('click', () => {
+      if (state.plainFormat === 'utf8') return;
+      const b = hexToBytes(plainInput.value);
+      if (b) {
+        try { plainInput.value = new TextDecoder().decode(b); } catch(e){}
+      }
+      state.plainFormat = 'utf8';
+      plainUtf8Btn.className = 'text-purple-300 hover:underline font-medium text-xs transition-colors';
+      plainHexBtn.className = 'text-purple-300/60 hover:text-purple-200 text-xs transition-colors';
+      updatePlainLength();
+    });
+
+    plainHexBtn.addEventListener('click', () => {
+      if (state.plainFormat === 'hex') return;
+      const bytes = new TextEncoder().encode(plainInput.value);
+      plainInput.value = bytesToHex(bytes);
+      state.plainFormat = 'hex';
+      plainHexBtn.className = 'text-purple-300 hover:underline font-medium text-xs transition-colors';
+      plainUtf8Btn.className = 'text-purple-300/60 hover:text-purple-200 text-xs transition-colors';
+      updatePlainLength();
+    });
+
+    genKeyBtn.addEventListener('click', generateNewKey);
+
+    toggleKeyEyeBtn.addEventListener('click', () => {
+      state.isKeyMasked = !state.isKeyMasked;
+      keyInput.type = state.isKeyMasked ? 'password' : 'text';
+      keyEyeIcon.textContent = state.isKeyMasked ? 'visibility_off' : 'visibility';
+    });
+
+    encryptBtn.addEventListener('click', performEncrypt);
+    decryptBtn.addEventListener('click', performDecrypt);
+
+    fmtHexBtn.addEventListener('click', () => setFormat('hex'));
+    fmtB64Btn.addEventListener('click', () => setFormat('b64'));
+    fmtBytesBtn.addEventListener('click', () => setFormat('bytes'));
+
+    decryptFmtHexBtn.addEventListener('click', () => setDecryptFormat('hex'));
+    decryptFmtB64Btn.addEventListener('click', () => setDecryptFormat('b64'));
+    decryptFmtBytesBtn.addEventListener('click', () => setDecryptFormat('bytes'));
+
+    useCipherBtn.addEventListener('click', () => {
+      decryptCipherInput.value = cipherOutput.value;
+      setDecryptFormat(state.cipherFormat);
+      showFeedback('info', 'Current ciphertext transferred to Decryption input.');
+    });
+
+    toggleDetailsBtn.addEventListener('click', () => {
+      const isHidden = detailsPanel.classList.contains('hidden');
+      if (isHidden) {
+        detailsPanel.classList.remove('hidden');
+        detailsArrow.style.transform = 'rotate(180deg)';
+      } else {
+        detailsPanel.classList.add('hidden');
+        detailsArrow.style.transform = 'rotate(0deg)';
+      }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (!cipherOutput.value) return;
+      try {
+        await navigator.clipboard.writeText(cipherOutput.value);
+        copyLabel.textContent = 'Copied!';
+        setTimeout(() => { copyLabel.textContent = 'Copy'; }, 1800);
+      } catch(e) {
+        copyLabel.textContent = 'Done!';
+        setTimeout(() => { copyLabel.textContent = 'Copy'; }, 1800);
+      }
+    });
+
+    plainInput.addEventListener('input', updatePlainLength);
+
+    // Initialization
+    updatePlainLength();
+    updateAlgoButtons();
+    performEncrypt();
+  })();
+  </script>
+</body>
+</html>

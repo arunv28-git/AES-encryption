@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="web_standard" name="shell-type">
+  <title>AES Crypto Lab — Round Explorer</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+
+    .card-obsidian {
+      background: linear-gradient(180deg, rgba(28, 24, 42, 0.72) 0%, rgba(18, 15, 28, 0.88) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(221, 183, 255, 0.06) inset, 0 1px 2px rgba(168, 85, 247, 0.2) inset;
+    }
+
+    .input-obsidian {
+      background: rgba(14, 12, 22, 0.85);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .input-obsidian:focus {
+      border-color: rgba(192, 132, 252, 0.7);
+      box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.35), 0 0 20px -2px rgba(168, 85, 247, 0.35);
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-dim": "#14121c",
+            "surface": "#14121c",
+            "background": "#0c0a14",
+            "surface-container": "#201e29",
+            "surface-container-high": "#2b2834",
+            "surface-container-low": "#1c1a25",
+            primary: "#ddb7ff",
+            secondary: "#f8acff"
+          },
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-[#0c0a14] font-body text-slate-200 antialiased selection:bg-purple-600/40 selection:text-purple-200 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+  <!-- Ambient Obsidian & Violet Luminous Atmosphere / Vertical Light Streaks -->
+  <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-[#0c0a14] via-[#100d1c] to-[#0c0a14]"></div>
+    <div class="absolute -top-10 left-[18%] w-[120px] h-[750px] bg-gradient-to-b from-purple-500/0 via-purple-600/15 to-transparent blur-[50px] -rotate-6"></div>
+    <div class="absolute -top-20 left-[35%] w-[180px] h-[850px] bg-gradient-to-b from-purple-400/0 via-fuchsia-500/20 to-transparent blur-[65px] -rotate-3"></div>
+    <div class="absolute -top-10 right-[22%] w-[220px] h-[900px] bg-gradient-to-b from-violet-400/20 via-purple-500/25 to-transparent blur-[70px] rotate-3"></div>
+    <div class="absolute -top-16 right-[10%] w-[160px] h-[800px] bg-gradient-to-b from-fuchsia-400/0 via-purple-600/20 to-transparent blur-[60px] rotate-6"></div>
+    <div class="absolute top-[2%] left-1/2 -translate-x-1/2 w-[1100px] h-[380px] bg-gradient-to-r from-purple-900/0 via-purple-600/25 to-fuchsia-900/0 blur-[130px] opacity-80 pointer-events-none"></div>
+    <div class="absolute top-[8%] left-1/2 -translate-x-1/2 w-[650px] h-[150px] bg-violet-300/15 blur-[75px] mix-blend-screen pointer-events-none"></div>
+    <div class="absolute top-[60%] left-1/2 -translate-x-1/2 w-[1200px] h-[500px] bg-purple-900/15 blur-[160px] rounded-full pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(#c084fc_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.03]"></div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="fixed top-0 inset-x-0 z-50 pointer-events-none flex justify-center pt-3 sm:pt-4 px-4">
+    <nav aria-label="Global navigation" class="pointer-events-auto flex items-center justify-between gap-4 px-4 py-2 rounded-full bg-white/[0.08] backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.25)] transition-all w-full max-w-3xl mx-auto">
+      <a class="flex items-center gap-2.5 pl-3 pr-2 py-1.5 text-white/90 hover:text-white transition-colors group shrink-0" data-path="aes-playground" href="aes-playground.html">
+        <div class="w-7 h-7 rounded-full bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+          <span class="material-symbols-outlined text-[16px] text-purple-300">vpn_key</span>
+        </div>
+        <span class="text-[14px] font-semibold text-white tracking-tight hidden sm:inline font-headline">AES Crypto Lab</span>
+      </a>
+      <div class="flex items-center justify-center gap-2 flex-1">
+        <a class="px-4 py-1.5 rounded-full text-[14px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-all" data-path="aes-playground" href="aes-playground.html">AES Playground</a>
+        <a aria-current="page" class="px-5 py-1.5 rounded-full text-[14px] font-semibold bg-white text-gray-900 shadow-[0_2px_12px_rgba(255,255,255,0.35)] transition-all" data-path="round-explorer" href="aes-round-explorer.html">Round Explorer</a>
+      </div>
+      <div class="pl-2 pr-1 shrink-0">
+        <div class="w-8 h-8 rounded-full bg-white/[0.12] hover:bg-white/[0.2] border border-white/20 text-white flex items-center justify-center cursor-pointer transition-colors shadow-inner">
+          <span class="material-symbols-outlined text-[17px]">person</span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Stage -->
+  <main class="w-full pt-16 flex-1 relative z-10">
+    <div class="flex flex-col w-full">
+      <div class="w-full max-w-7xl mx-auto px-4 md:px-8 py-8 flex flex-col gap-6">
+
+        <!-- Top Navigation & Stage Header -->
+        <header class="flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <a class="inline-flex items-center gap-1.5 text-purple-300/80 hover:text-white transition-colors font-mono text-[13px] group" data-path="aes-playground" href="aes-playground.html">
+              <span class="material-symbols-outlined text-[16px] group-hover:-translate-x-0.5 transition-transform text-purple-400">arrow_back</span>
+              <span>Back to Playground</span>
+            </a>
+            <!-- Capsule Pill Badge -->
+            <div class="flex items-center gap-2 bg-[#171328]/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-purple-400/30 shadow-[0_0_20px_rgba(168,85,247,0.22)]">
+              <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse shadow-[0_0_8px_#e879f9]"></span>
+              <span class="font-mono text-[11px] text-purple-200 tracking-wider">RIJNDAEL STATE PIPELINE</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-1">
+            <div class="flex flex-col gap-1 max-w-3xl">
+              <h1 class="text-2xl md:text-3xl lg:text-[34px] text-white font-semibold tracking-tight drop-shadow-[0_2px_16px_rgba(0,0,0,0.9)]">
+                AES-128 Round Explorer: Step-by-Step Visualization
+              </h1>
+              <p class="text-xs text-purple-200/70 pt-0.5">
+                Demonstrates the underlying <strong>AES-128 block cipher</strong> transformations (NIST FIPS PUB 197). <em>(Notice: The Playground uses AES-GCM authenticated mode; this Explorer inspects raw electronic codebook block operations).</em>
+              </p>
+            </div>
+
+            <!-- Stepper & Playback Controls -->
+            <div class="flex items-center gap-1.5 bg-[#141024]/90 backdrop-blur-xl p-1.5 rounded-full border border-purple-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.55)] self-start md:self-auto">
+              <button class="w-9 h-9 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center text-purple-200/80 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer" id="btn-restart" title="Restart to Pre-Round">
+                <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+              </button>
+              <button class="w-9 h-9 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center text-purple-200/80 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer" id="btn-prev-step" title="Previous Step">
+                <span class="material-symbols-outlined text-[18px]">skip_previous</span>
+              </button>
+              <button class="px-5 h-9 rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-400 hover:to-fuchsia-400 text-white font-semibold text-[13px] flex items-center gap-1.5 shadow-[0_0_25px_rgba(168,85,247,0.55)] hover:shadow-[0_0_30px_rgba(192,132,252,0.7)] transition-all cursor-pointer" id="btn-play-pause">
+                <span class="material-symbols-outlined text-[18px]" id="play-icon">play_arrow</span>
+                <span id="play-text">PLAY</span>
+              </button>
+              <button class="w-9 h-9 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center text-purple-200/80 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer" id="btn-next-step" title="Next Step">
+                <span class="material-symbols-outlined text-[18px]">skip_next</span>
+              </button>
+              <div class="h-5 w-px bg-purple-500/20 mx-1"></div>
+              <div class="relative">
+                <select class="bg-white/[0.04] hover:bg-white/[0.08] border border-purple-500/20 text-purple-200 font-mono text-[12px] px-3 h-9 rounded-full pr-6 appearance-none cursor-pointer focus:outline-none transition-all" id="playback-speed">
+                  <option class="bg-[#141024] text-purple-200" value="0.5">0.5x</option>
+                  <option class="bg-[#141024] text-purple-200" selected="" value="1">1.0x</option>
+                  <option class="bg-[#141024] text-purple-200" value="2">2.0x</option>
+                </select>
+                <span class="material-symbols-outlined text-[14px] text-purple-300 absolute right-2 top-2.5 pointer-events-none">expand_more</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- INPUT VECTOR CONFIGURATION CARD -->
+          <div class="w-full card-obsidian rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-stretch md:items-end gap-3 shadow-lg">
+            <div class="flex-1 flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold text-purple-200" for="explorer-plain-input">16-Byte Plaintext Block (32 Hex Chars)</label>
+                <span class="text-[11px] font-mono text-purple-300/50">FIPS-197 KAT Vector</span>
+              </div>
+              <input class="w-full bg-[#0d0a18] border border-purple-500/25 rounded-xl py-2 px-3 text-xs text-purple-100 placeholder:text-purple-300/30 font-mono focus:outline-none focus:border-purple-400/60" id="explorer-plain-input" spellcheck="false" type="text" value="00112233445566778899aabbccddeeff">
+            </div>
+
+            <div class="flex-1 flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-semibold text-purple-200" for="explorer-key-input">16-Byte Cipher Key (32 Hex Chars)</label>
+                <span class="text-[11px] font-mono text-purple-300/50">128-bit Primary Key</span>
+              </div>
+              <input class="w-full bg-[#0d0a18] border border-purple-500/25 rounded-xl py-2 px-3 text-xs text-purple-100 placeholder:text-purple-300/30 font-mono focus:outline-none focus:border-purple-400/60" id="explorer-key-input" spellcheck="false" type="text" value="000102030405060708090a0b0c0d0e0f">
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600/40 to-fuchsia-600/40 hover:from-purple-500/50 hover:to-fuchsia-500/50 border border-purple-400/40 text-xs font-semibold text-white transition-all cursor-pointer shadow-sm flex items-center gap-1.5 whitespace-nowrap" id="btn-recompute-trace" type="button">
+                <span class="material-symbols-outlined text-[16px]">sync</span>
+                <span>Recalculate Trace</span>
+              </button>
+              <button class="px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-purple-500/20 text-xs text-purple-200 transition-all cursor-pointer whitespace-nowrap" id="btn-reset-kat" title="Reset to standard FIPS-197 Known Answer Test vector" type="button">
+                Reset KAT
+              </button>
+            </div>
+          </div>
+
+          <!-- Horizontal Round Selector Timeline -->
+          <nav aria-label="AES Round Selector" class="w-full overflow-x-auto pb-1 pt-1 scrollbar-none">
+            <div class="flex items-center gap-1.5 min-w-max p-1.5 bg-[#120e22]/70 backdrop-blur-md rounded-full border border-purple-500/20 shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]" id="round-timeline-container">
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="0">
+                Pre-Round <span class="text-purple-300/60 font-mono ml-1 text-[11px]">(AddRoundKey)</span>
+              </button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="1">Round 1</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="2">Round 2</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="3">Round 3</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="4">Round 4</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="5">Round 5</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="6">Round 6</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="7">Round 7</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="8">Round 8</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all cursor-pointer" data-round="9">Round 9</button>
+              <button class="round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all flex items-center gap-1.5 cursor-pointer" data-round="10">
+                <span>Round 10</span>
+                <span class="bg-purple-950/40 text-purple-300/80 font-mono text-[10px] px-2 py-0.5 rounded-full border border-purple-500/20">Final: No MixColumns</span>
+              </button>
+            </div>
+          </nav>
+        </header>
+
+        <!-- Main Learning Stage (2 Balanced Columns) -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left Column: Operations & Educational Explanation -->
+          <section class="lg:col-span-5 flex flex-col gap-6">
+            <!-- Operations Pipeline Stack -->
+            <div class="bg-[#141024]/85 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-5 flex flex-col gap-3 shadow-[0_16px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(168,85,247,0.08)]">
+              <div class="flex items-center justify-between pb-2 border-b border-purple-500/15">
+                <span class="font-mono text-[11px] text-purple-300/70 uppercase tracking-wider" id="round-ops-title">ROUND 1 TRANSFORMATIONS</span>
+                <span class="font-mono text-[11px] text-purple-200 bg-purple-900/40 px-2.5 py-0.5 rounded-full border border-purple-400/30" id="round-ops-badge">Step 1 of 4</span>
+              </div>
+
+              <!-- Container for operation buttons -->
+              <div class="flex flex-col gap-2.5" id="operations-container">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Plain English Explanation Card -->
+            <article class="bg-[#141024]/85 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-6 flex flex-col gap-4 shadow-[0_16px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(168,85,247,0.08)]">
+              <div class="flex items-center gap-2 text-primary">
+                <span class="material-symbols-outlined text-[20px] text-purple-300 drop-shadow-[0_0_10px_#c084fc]">lightbulb</span>
+                <h2 class="text-[18px] text-white font-semibold" id="explanation-title">Operation Details</h2>
+              </div>
+              <p class="text-[14px] text-slate-200 leading-relaxed" id="explanation-text">
+                Select an operation to view its transformation.
+              </p>
+              
+              <!-- Dynamic Operation Deep-Dive Guide -->
+              <div class="bg-[#0f0c1c]/90 border border-purple-500/15 rounded-xl p-3 flex flex-col gap-1.5" id="op-guide-container">
+                <!-- Dynamically updated based on op -->
+              </div>
+            </article>
+          </section>
+
+          <!-- Right Column: 4x4 AES State Matrix Transformation -->
+          <section class="lg:col-span-7 flex flex-col gap-6">
+            <div class="bg-[#141024]/85 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-6 flex flex-col gap-6 shadow-[0_16px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(168,85,247,0.08)]">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-purple-500/15">
+                <div>
+                  <h2 class="text-xl md:text-[22px] font-semibold text-white">State Transformation</h2>
+                  <span class="font-mono text-[12px] text-purple-300/70" id="matrix-stage-subtitle">Before vs After (Column-Major 128-bit State)</span>
+                </div>
+                
+                <!-- Format Switcher & Visual Legend -->
+                <div class="flex flex-wrap items-center gap-3">
+                  <!-- Hex / Binary Toggle -->
+                  <div class="flex items-center gap-1 bg-[#0f0c1c] p-1 rounded-full border border-purple-500/25">
+                    <button class="px-3 py-0.5 rounded-full font-mono text-[11px] font-semibold transition-all bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)] cursor-pointer" id="fmt-hex">Hex</button>
+                    <button class="px-3 py-0.5 rounded-full font-mono text-[11px] text-purple-300/80 hover:text-white transition-all cursor-pointer" id="fmt-bin">Binary</button>
+                  </div>
+
+                  <!-- Visual Legend -->
+                  <div class="flex items-center gap-3 font-mono text-[11px]">
+                    <div class="flex items-center gap-1.5 text-slate-400">
+                      <span class="w-2.5 h-2.5 rounded-full bg-white/[0.08] border border-white/10"></span>
+                      <span>Unchanged</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-purple-300">
+                      <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-[0_0_8px_#c084fc]"></span>
+                      <span>Transformed</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dual Matrix Stage -->
+              <div class="grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
+                <!-- Matrix A: Input State -->
+                <div class="md:col-span-5 flex flex-col gap-2">
+                  <div class="flex items-center justify-between px-1">
+                    <span class="font-mono text-[11px] text-purple-300/70 uppercase" id="matrix-in-label">Input State</span>
+                    <span class="font-mono text-[12px] text-purple-400 font-semibold">S</span>
+                  </div>
+                  <div class="bg-[#0d0a18]/90 border border-purple-500/15 rounded-xl p-3 flex flex-col gap-1.5 shadow-inner" id="matrix-input-grid">
+                    <!-- 4x4 Cells injected via JS -->
+                  </div>
+                  <span class="font-mono text-[11px] text-purple-300/50 text-center mt-1">Col 0 • Col 1 • Col 2 • Col 3</span>
+                </div>
+
+                <!-- Transition Arrow -->
+                <div class="md:col-span-1 flex flex-col items-center justify-center my-2 md:my-0">
+                  <div class="w-9 h-9 rounded-full bg-purple-950/60 border border-purple-400/40 flex items-center justify-center text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+                    <span class="material-symbols-outlined text-[18px] md:rotate-0 rotate-90">arrow_forward</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-purple-300 uppercase mt-1 tracking-wider hidden md:block" id="matrix-arrow-label">Step</span>
+                </div>
+
+                <!-- Matrix B: Output State -->
+                <div class="md:col-span-5 flex flex-col gap-2">
+                  <div class="flex items-center justify-between px-1">
+                    <span class="font-mono text-[11px] text-purple-300 font-semibold uppercase" id="matrix-out-label">Output State</span>
+                    <span class="font-mono text-[12px] text-purple-400 font-semibold">S'</span>
+                  </div>
+                  <div class="bg-[#0d0a18]/90 border border-purple-500/15 rounded-xl p-3 flex flex-col gap-1.5 shadow-inner" id="matrix-output-grid">
+                    <!-- 4x4 Cells injected via JS -->
+                  </div>
+                  <span class="font-mono text-[11px] text-purple-300 text-center mt-1">Col 0 • Col 1 • Col 2 • Col 3</span>
+                </div>
+              </div>
+
+              <!-- Academic Notice Banner -->
+              <div class="bg-[#0f0c1c]/90 border border-purple-500/15 rounded-xl p-4 flex items-start gap-3 text-slate-200">
+                <span class="material-symbols-outlined text-[20px] text-purple-400 shrink-0 mt-0.5 drop-shadow-[0_0_8px_#c084fc]">info</span>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[15px] font-semibold text-white">NIST FIPS PUB 197 Mathematical Specification</span>
+                  <p class="text-[13px] text-slate-400" id="academic-note-text">
+                    In AES-128, the input 16-byte block is mapped column-by-column into a 4×4 byte matrix. Rounds 1–9 execute all four transformations. In Round 10, MixColumns is omitted to ensure cryptographic and architectural symmetry with Inverse MixColumns.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+        </main>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full bg-[#0a0712]/95 border-t border-purple-500/15 mt-auto py-8 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+      <div class="flex flex-col gap-1">
+        <span class="text-[16px] text-white font-semibold">AES Crypto Lab</span>
+        <p class="text-[13px] text-purple-300/70">Interactive educational workbench compliant with the NIST FIPS 197 Advanced Encryption Standard.</p>
+      </div>
+      <div class="flex items-center gap-4 font-mono text-[11px] text-purple-300/70">
+        <span>FIPS PUB 197</span>
+        <span class="w-1 h-1 rounded-full bg-purple-500/40"></span>
+        <span>RIJNDAEL SPECIFICATION</span>
+        <span class="w-1 h-1 rounded-full bg-purple-500/40"></span>
+        <span>ACADEMIC WORKBENCH</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      // Rijndael S-Box
+      const SBOX = [
+        0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+        0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+        0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+        0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+        0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+        0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+        0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+        0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+        0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+        0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+        0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5e, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+        0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+        0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+        0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+        0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+        0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
+      ];
+
+      const RCON = [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
+
+      function xtime(b) {
+        return ((b << 1) ^ (((b >> 7) & 1) * 0x11b)) & 0xff;
+      }
+
+      function keyExpansion(keyBytes) {
+        const w = new Uint8Array(44 * 4);
+        for (let i = 0; i < 16; i++) w[i] = keyBytes[i];
+        const temp = new Uint8Array(4);
+        for (let i = 4; i < 44; i++) {
+          const prev = (i - 1) * 4;
+          temp[0] = w[prev];
+          temp[1] = w[prev + 1];
+          temp[2] = w[prev + 2];
+          temp[3] = w[prev + 3];
+
+          if (i % 4 === 0) {
+            const t0 = temp[0];
+            temp[0] = temp[1];
+            temp[1] = temp[2];
+            temp[2] = temp[3];
+            temp[3] = t0;
+
+            temp[0] = SBOX[temp[0]];
+            temp[1] = SBOX[temp[1]];
+            temp[2] = SBOX[temp[2]];
+            temp[3] = SBOX[temp[3]];
+
+            temp[0] ^= RCON[i / 4];
+          }
+
+          const cur = i * 4;
+          const old = (i - 4) * 4;
+          w[cur] = w[old] ^ temp[0];
+          w[cur + 1] = w[old + 1] ^ temp[1];
+          w[cur + 2] = w[old + 2] ^ temp[2];
+          w[cur + 3] = w[old + 3] ^ temp[3];
+        }
+
+        const roundKeys = [];
+        for (let r = 0; r <= 10; r++) {
+          roundKeys.push(w.slice(r * 16, (r + 1) * 16));
+        }
+        return roundKeys;
+      }
+
+      function bytesToMatrix(bytes) {
+        const m = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+        for (let c = 0; c < 4; c++) {
+          for (let r = 0; r < 4; r++) {
+            m[r][c] = bytes[c * 4 + r];
+          }
+        }
+        return m;
+      }
+
+      function cloneMatrix(m) {
+        return m.map(row => [...row]);
+      }
+
+      function applySubBytes(state) {
+        const out = cloneMatrix(state);
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 4; c++) {
+            out[r][c] = SBOX[out[r][c]];
+          }
+        }
+        return out;
+      }
+
+      function applyShiftRows(state) {
+        const out = cloneMatrix(state);
+        const r1_0 = out[1][0];
+        out[1][0] = out[1][1]; out[1][1] = out[1][2]; out[1][2] = out[1][3]; out[1][3] = r1_0;
+
+        const r2_0 = out[2][0], r2_1 = out[2][1];
+        out[2][0] = out[2][2]; out[2][1] = out[2][3]; out[2][2] = r2_0; out[2][3] = r2_1;
+
+        const r3_3 = out[3][3];
+        out[3][3] = out[3][2]; out[3][2] = out[3][1]; out[3][1] = out[3][0]; out[3][0] = r3_3;
+        return out;
+      }
+
+      function applyMixColumns(state) {
+        const out = cloneMatrix(state);
+        for (let c = 0; c < 4; c++) {
+          const s0 = state[0][c], s1 = state[1][c], s2 = state[2][c], s3 = state[3][c];
+          out[0][c] = xtime(s0) ^ (xtime(s1) ^ s1) ^ s2 ^ s3;
+          out[1][c] = s0 ^ xtime(s1) ^ (xtime(s2) ^ s2) ^ s3;
+          out[2][c] = s0 ^ s1 ^ xtime(s2) ^ (xtime(s3) ^ s3);
+          out[3][c] = (xtime(s0) ^ s0) ^ s1 ^ s2 ^ xtime(s3);
+        }
+        return out;
+      }
+
+      function applyAddRoundKey(state, roundKeyBytes) {
+        const keyMat = bytesToMatrix(roundKeyBytes);
+        const out = cloneMatrix(state);
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 4; c++) {
+            out[r][c] ^= keyMat[r][c];
+          }
+        }
+        return out;
+      }
+
+      function hexToBytes(hex) {
+        if (!hex) return null;
+        const clean = hex.replace(/\s+/g, '');
+        if (clean.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(clean)) return null;
+        const bytes = new Uint8Array(clean.length / 2);
+        for (let i = 0; i < clean.length; i += 2) {
+          bytes[i / 2] = parseInt(clean.substring(i, i + 2), 16);
+        }
+        return bytes;
+      }
+
+      function byteToHex(b) {
+        return b.toString(16).padStart(2, '0');
+      }
+
+      function byteToBin(b) {
+        return b.toString(2).padStart(8, '0');
+      }
+
+      // Dynamic calculation engine based on user inputs
+      let allSteps = [];
+      let roundStepsMap = {};
+
+      function computeTrace(plainBytes, keyBytes) {
+        const roundKeys = keyExpansion(keyBytes);
+        const steps = [];
+        let curState = bytesToMatrix(plainBytes);
+
+        // Pre-Round: Step 0
+        const postPre = applyAddRoundKey(curState, roundKeys[0]);
+        steps.push({
+          round: 0,
+          opIndex: 0,
+          op: "AddRoundKey",
+          name: "Initial AddRoundKey",
+          inputState: cloneMatrix(curState),
+          outputState: cloneMatrix(postPre),
+          roundKey: roundKeys[0],
+          explanation: "Bitwise XOR between the initial 128-bit input plaintext block and the primary Cipher Key (Round Key 0)."
+        });
+        curState = postPre;
+
+        // Rounds 1 to 9 (4 steps per round)
+        for (let r = 1; r <= 9; r++) {
+          const postSub = applySubBytes(curState);
+          steps.push({
+            round: r,
+            opIndex: 0,
+            op: "SubBytes",
+            name: "SubBytes",
+            inputState: cloneMatrix(curState),
+            outputState: cloneMatrix(postSub),
+            explanation: "Non-linear byte substitution using the Rijndael S-Box table, providing non-linearity and resistance to differential cryptanalysis."
+          });
+          curState = postSub;
+
+          const postShift = applyShiftRows(curState);
+          steps.push({
+            round: r,
+            opIndex: 1,
+            op: "ShiftRows",
+            name: "ShiftRows",
+            inputState: cloneMatrix(curState),
+            outputState: cloneMatrix(postShift),
+            explanation: "Cyclic left-shift of state rows: Row 0 shifted by 0, Row 1 by 1, Row 2 by 2, and Row 3 by 3 bytes. This diffuses bytes across columns."
+          });
+          curState = postShift;
+
+          const postMix = applyMixColumns(curState);
+          steps.push({
+            round: r,
+            opIndex: 2,
+            op: "MixColumns",
+            name: "MixColumns",
+            inputState: cloneMatrix(curState),
+            outputState: cloneMatrix(postMix),
+            explanation: "Matrix multiplication in Galois Field GF(2^8) mixing column bytes. Along with ShiftRows, it provides full multi-round avalanche diffusion."
+          });
+          curState = postMix;
+
+          const postKey = applyAddRoundKey(curState, roundKeys[r]);
+          steps.push({
+            round: r,
+            opIndex: 3,
+            op: "AddRoundKey",
+            name: "AddRoundKey",
+            inputState: cloneMatrix(curState),
+            outputState: cloneMatrix(postKey),
+            roundKey: roundKeys[r],
+            explanation: `Bitwise XOR with expanded Round Key ${r} derived from the Rijndael key schedule.`
+          });
+          curState = postKey;
+        }
+
+        // Round 10: Final Round (MixColumns omitted)
+        const postSub10 = applySubBytes(curState);
+        steps.push({
+          round: 10,
+          opIndex: 0,
+          op: "SubBytes",
+          name: "SubBytes",
+          inputState: cloneMatrix(curState),
+          outputState: cloneMatrix(postSub10),
+          explanation: "Non-linear byte substitution via the S-Box table in the final round."
+        });
+        curState = postSub10;
+
+        const postShift10 = applyShiftRows(curState);
+        steps.push({
+          round: 10,
+          opIndex: 1,
+          op: "ShiftRows",
+          name: "ShiftRows",
+          inputState: cloneMatrix(curState),
+          outputState: cloneMatrix(postShift10),
+          explanation: "Cyclic left-shift of state rows in the final round."
+        });
+        curState = postShift10;
+
+        const postKey10 = applyAddRoundKey(curState, roundKeys[10]);
+        steps.push({
+          round: 10,
+          opIndex: 2,
+          op: "AddRoundKey",
+          name: "AddRoundKey",
+          inputState: cloneMatrix(curState),
+          outputState: cloneMatrix(postKey10),
+          roundKey: roundKeys[10],
+          explanation: "Final Round bitwise XOR with Round Key 10. MixColumns is omitted to ensure encryption and decryption hardware symmetry."
+        });
+        curState = postKey10;
+
+        const rMap = {};
+        steps.forEach((st, idx) => {
+          st.globalIndex = idx;
+          if (!rMap[st.round]) rMap[st.round] = [];
+          rMap[st.round].push(st);
+        });
+
+        return { steps, rMap };
+      }
+
+      // App state
+      let currentRound = 0;
+      let currentStepIndex = 0;
+      let displayFormat = 'hex';
+      let isPlaying = false;
+      let playTimer = null;
+      let playSpeedMultiplier = 1.0;
+
+      // DOM Elements
+      const plainInput = document.getElementById('explorer-plain-input');
+      const keyInput = document.getElementById('explorer-key-input');
+      const btnRecompute = document.getElementById('btn-recompute-trace');
+      const btnResetKat = document.getElementById('btn-reset-kat');
+
+      const roundPills = document.querySelectorAll('.round-pill');
+      const operationsContainer = document.getElementById('operations-container');
+      const roundOpsTitle = document.getElementById('round-ops-title');
+      const roundOpsBadge = document.getElementById('round-ops-badge');
+      const explanationTitle = document.getElementById('explanation-title');
+      const explanationText = document.getElementById('explanation-text');
+      const opGuideContainer = document.getElementById('op-guide-container');
+      const matrixInputGrid = document.getElementById('matrix-input-grid');
+      const matrixOutputGrid = document.getElementById('matrix-output-grid');
+      const matrixInLabel = document.getElementById('matrix-in-label');
+      const matrixOutLabel = document.getElementById('matrix-out-label');
+      const matrixArrowLabel = document.getElementById('matrix-arrow-label');
+      const matrixStageSubtitle = document.getElementById('matrix-stage-subtitle');
+      const fmtHexBtn = document.getElementById('fmt-hex');
+      const fmtBinBtn = document.getElementById('fmt-bin');
+      const btnPlayPause = document.getElementById('btn-play-pause');
+      const playIcon = document.getElementById('play-icon');
+      const playText = document.getElementById('play-text');
+      const btnPrev = document.getElementById('btn-prev-step');
+      const btnNext = document.getElementById('btn-next-step');
+      const btnRestart = document.getElementById('btn-restart');
+      const speedSelect = document.getElementById('playback-speed');
+
+      function reloadTraceFromInputs() {
+        const pBytes = hexToBytes(plainInput.value);
+        const kBytes = hexToBytes(keyInput.value);
+
+        if (!pBytes || pBytes.length !== 16) {
+          alert("Plaintext block must be exactly 16 bytes (32 hex characters).");
+          return false;
+        }
+        if (!kBytes || kBytes.length !== 16) {
+          alert("Cipher key must be exactly 16 bytes (32 hex characters for AES-128).");
+          return false;
+        }
+
+        const res = computeTrace(pBytes, kBytes);
+        allSteps = res.steps;
+        roundStepsMap = res.rMap;
+        if (currentStepIndex >= allSteps.length) currentStepIndex = 0;
+        return true;
+      }
+
+      function renderMatrix(container, matrix, comparisonMatrix = null) {
+        container.innerHTML = '';
+        for (let r = 0; r < 4; r++) {
+          const rowDiv = document.createElement('div');
+          rowDiv.className = 'grid grid-cols-4 gap-1.5 text-center';
+          for (let c = 0; c < 4; c++) {
+            const val = matrix[r][c];
+            const hexVal = byteToHex(val);
+            const binVal = byteToBin(val);
+
+            const isChanged = comparisonMatrix ? (val !== comparisonMatrix[r][c]) : false;
+            
+            const cell = document.createElement('div');
+            cell.className = isChanged
+              ? 'matrix-cell py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white font-mono text-[13px] font-bold shadow-[0_0_20px_rgba(168,85,247,0.65)] border border-purple-300 transition-all'
+              : 'matrix-cell py-2.5 rounded-lg bg-white/[0.03] border border-purple-500/10 font-mono text-[13px] text-slate-200 font-semibold transition-all';
+
+            cell.textContent = (displayFormat === 'hex') ? hexVal : binVal.substring(0, 4) + '..';
+            cell.title = `Row ${r}, Col ${c} | Hex: 0x${hexVal.toUpperCase()} | Bin: ${binVal}`;
+            rowDiv.appendChild(cell);
+          }
+          container.appendChild(rowDiv);
+        }
+      }
+
+      function updateUI() {
+        if (!allSteps || allSteps.length === 0) return;
+        const step = allSteps[currentStepIndex];
+        currentRound = step.round;
+
+        // 1. Timeline pills
+        roundPills.forEach(pill => {
+          const rNum = parseInt(pill.getAttribute('data-round'), 10);
+          if (rNum === currentRound) {
+            pill.className = 'round-pill px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600/30 to-fuchsia-600/30 text-purple-100 font-mono text-[12px] font-semibold border border-purple-400/50 shadow-[0_0_24px_rgba(168,85,247,0.35)] flex items-center gap-1.5 cursor-pointer';
+          } else {
+            pill.className = 'round-pill px-3 py-1.5 rounded-full bg-white/[0.02] text-slate-300 font-mono text-[12px] hover:text-white hover:bg-white/[0.06] border border-transparent transition-all flex items-center gap-1.5 cursor-pointer';
+          }
+        });
+
+        // 2. Operations stack
+        const roundSteps = roundStepsMap[currentRound] || [];
+        roundOpsTitle.textContent = currentRound === 0 ? 'PRE-ROUND TRANSFORMATIONS' : `ROUND ${currentRound} TRANSFORMATIONS`;
+        roundOpsBadge.textContent = `Step ${step.opIndex + 1} of ${roundSteps.length}`;
+
+        operationsContainer.innerHTML = '';
+        roundSteps.forEach((st, idx) => {
+          const isCurrent = (st.globalIndex === currentStepIndex);
+          const isDone = (st.globalIndex < currentStepIndex);
+
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = isCurrent
+            ? 'step-card w-full p-3.5 rounded-xl bg-[#1b1433]/90 border border-purple-400/40 shadow-[0_0_30px_rgba(168,85,247,0.25)] flex items-start gap-3 relative overflow-hidden text-left transition-all cursor-pointer'
+            : 'step-card group text-left w-full p-3 rounded-xl bg-white/[0.02] border border-purple-500/10 hover:bg-white/[0.04] transition-all flex items-start gap-3 cursor-pointer';
+
+          if (isCurrent) {
+            card.innerHTML = `
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-fuchsia-400 via-purple-400 to-violet-500 shadow-[0_0_12px_#c084fc]"></div>
+              <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-300 to-white text-[#14121c] font-mono text-[12px] font-bold flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_14px_rgba(221,183,255,0.7)]">
+                ${idx + 1}
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-[15px] text-white font-bold">${st.name}</span>
+                  <span class="font-mono text-[10px] text-fuchsia-200 bg-fuchsia-500/20 border border-fuchsia-400/40 px-2 py-0.5 rounded-full font-semibold shadow-[0_0_10px_rgba(217,70,239,0.25)]">ACTIVE</span>
+                </div>
+                <p class="text-[12px] text-purple-200/90 truncate">${st.explanation.split('.')[0]}</p>
+              </div>
+            `;
+          } else if (isDone) {
+            card.innerHTML = `
+              <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                <span class="material-symbols-outlined text-[14px]">check</span>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-[15px] font-semibold text-white">${st.name}</span>
+                  <span class="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">COMPLETED</span>
+                </div>
+                <p class="text-[12px] text-slate-400 truncate">${st.explanation.split('.')[0]}</p>
+              </div>
+            `;
+          } else {
+            card.innerHTML = `
+              <div class="w-6 h-6 rounded-full bg-white/[0.04] text-purple-300/60 font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5 border border-white/5">
+                ${idx + 1}
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-[15px] text-slate-400">${st.name}</span>
+                  <span class="font-mono text-[10px] text-purple-300/60 bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/5">PENDING</span>
+                </div>
+                <p class="text-[12px] text-slate-400 truncate">${st.explanation.split('.')[0]}</p>
+              </div>
+            `;
+          }
+
+          card.addEventListener('click', () => {
+            currentStepIndex = st.globalIndex;
+            updateUI();
+          });
+          operationsContainer.appendChild(card);
+        });
+
+        // 3. Explanation and guide
+        explanationTitle.textContent = `Why ${step.name}?`;
+        explanationText.textContent = step.explanation;
+
+        if (step.op === "ShiftRows") {
+          opGuideContainer.innerHTML = `
+            <span class="font-mono text-[10px] text-purple-300/70 uppercase tracking-wider mb-1">CYCLIC LEFT-SHIFT PATTERN</span>
+            <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-white/[0.02] text-slate-300 font-mono text-[12px]">
+              <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-500"></span>Row 0</span>
+              <span class="text-slate-400 text-[12px]">No shift (0 byte offset)</span>
+              <span class="text-[11px] text-slate-500">Offset: 0</span>
+            </div>
+            <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-purple-950/40 text-white font-mono text-[12px] border border-purple-500/25">
+              <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-400"></span>Row 1</span>
+              <span class="text-purple-200 text-[12px]">Left shift 1 byte</span>
+              <span class="text-[11px] text-purple-300 font-semibold">Offset: -1</span>
+            </div>
+            <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-purple-900/30 text-white font-mono text-[12px] border border-purple-400/25">
+              <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-fuchsia-400"></span>Row 2</span>
+              <span class="text-purple-200 text-[12px]">Left shift 2 bytes</span>
+              <span class="text-[11px] text-fuchsia-300 font-semibold">Offset: -2</span>
+            </div>
+            <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-violet-950/40 text-white font-mono text-[12px] border border-violet-500/25">
+              <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-violet-400"></span>Row 3</span>
+              <span class="text-purple-200 text-[12px]">Left shift 3 bytes</span>
+              <span class="text-[11px] text-violet-300 font-semibold">Offset: -3</span>
+            </div>
+          `;
+        } else if (step.op === "SubBytes") {
+          opGuideContainer.innerHTML = `
+            <span class="font-mono text-[10px] text-purple-300/70 uppercase tracking-wider mb-1">NON-LINEAR SUBSTITUTION</span>
+            <div class="p-2.5 rounded-lg bg-white/[0.02] text-slate-300 text-[12px] flex flex-col gap-1">
+              <span class="text-purple-300 font-medium">GF(2⁸) Inversion + Affine Mapping:</span>
+              <p class="text-slate-400 text-[11px] leading-relaxed">
+                Each input byte b is replaced with S(b) via multiplicative inverse in GF(2⁸) followed by affine mapping with constant 0x63.
+              </p>
+            </div>
+          `;
+        } else if (step.op === "MixColumns") {
+          opGuideContainer.innerHTML = `
+            <span class="font-mono text-[10px] text-purple-300/70 uppercase tracking-wider mb-1">GF(2⁸) MATRIX MULTIPLICATION</span>
+            <div class="p-2.5 rounded-lg bg-white/[0.02] text-slate-300 text-[12px] flex flex-col gap-1">
+              <span class="text-purple-300 font-medium">Circulant Matrix [02 03 01 01]:</span>
+              <p class="text-slate-400 text-[11px] leading-relaxed">
+                Column polynomial multiplication modulo x⁴ + 1 ensures full linear diffusion across all four column bytes.
+              </p>
+            </div>
+          `;
+        } else {
+          const keyHexStr = step.roundKey ? Array.from(step.roundKey).map(byteToHex).join(' ') : '';
+          opGuideContainer.innerHTML = `
+            <span class="font-mono text-[10px] text-purple-300/70 uppercase tracking-wider mb-1">ROUND KEY (128-BIT)</span>
+            <div class="p-2.5 rounded-lg bg-white/[0.02] font-mono text-[11px] text-purple-200 break-all select-all">
+              ${keyHexStr}
+            </div>
+          `;
+        }
+
+        // 4. Update Matrices
+        matrixStageSubtitle.textContent = `Before vs After ${step.name} (Round ${step.round})`;
+        matrixInLabel.textContent = `Input State (before ${step.name})`;
+        matrixOutLabel.textContent = `Output State (after ${step.name})`;
+        matrixArrowLabel.textContent = step.op;
+
+        renderMatrix(matrixInputGrid, step.inputState, null);
+        renderMatrix(matrixOutputGrid, step.outputState, step.inputState);
+      }
+
+      // Format toggling
+      fmtHexBtn.addEventListener('click', () => {
+        displayFormat = 'hex';
+        fmtHexBtn.className = 'px-3 py-0.5 rounded-full font-mono text-[11px] font-semibold transition-all bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)] cursor-pointer';
+        fmtBinBtn.className = 'px-3 py-0.5 rounded-full font-mono text-[11px] text-purple-300/80 hover:text-white transition-all cursor-pointer';
+        updateUI();
+      });
+
+      fmtBinBtn.addEventListener('click', () => {
+        displayFormat = 'bin';
+        fmtBinBtn.className = 'px-3 py-0.5 rounded-full font-mono text-[11px] font-semibold transition-all bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)] cursor-pointer';
+        fmtHexBtn.className = 'px-3 py-0.5 rounded-full font-mono text-[11px] text-purple-300/80 hover:text-white transition-all cursor-pointer';
+        updateUI();
+      });
+
+      // Navigation & Playback Controls
+      function stopPlayback() {
+        if (playTimer) {
+          clearInterval(playTimer);
+          playTimer = null;
+        }
+        isPlaying = false;
+        playIcon.textContent = 'play_arrow';
+        playText.textContent = 'PLAY';
+      }
+
+      function startPlayback() {
+        isPlaying = true;
+        playIcon.textContent = 'pause';
+        playText.textContent = 'PAUSE';
+
+        const baseInterval = 1500;
+        const interval = baseInterval / playSpeedMultiplier;
+
+        playTimer = setInterval(() => {
+          if (currentStepIndex >= allSteps.length - 1) {
+            currentStepIndex = 0;
+          } else {
+            currentStepIndex++;
+          }
+          updateUI();
+        }, interval);
+      }
+
+      btnPlayPause.addEventListener('click', () => {
+        if (isPlaying) {
+          stopPlayback();
+        } else {
+          startPlayback();
+        }
+      });
+
+      btnPrev.addEventListener('click', () => {
+        stopPlayback();
+        if (currentStepIndex > 0) {
+          currentStepIndex--;
+          updateUI();
+        }
+      });
+
+      btnNext.addEventListener('click', () => {
+        stopPlayback();
+        if (currentStepIndex < allSteps.length - 1) {
+          currentStepIndex++;
+          updateUI();
+        }
+      });
+
+      btnRestart.addEventListener('click', () => {
+        stopPlayback();
+        currentStepIndex = 0;
+        updateUI();
+      });
+
+      speedSelect.addEventListener('change', (e) => {
+        playSpeedMultiplier = parseFloat(e.target.value) || 1.0;
+        if (isPlaying) {
+          stopPlayback();
+          startPlayback();
+        }
+      });
+
+      roundPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          stopPlayback();
+          const targetRound = parseInt(pill.getAttribute('data-round'), 10);
+          const stepsInRound = roundStepsMap[targetRound];
+          if (stepsInRound && stepsInRound.length > 0) {
+            currentStepIndex = stepsInRound[0].globalIndex;
+            updateUI();
+          }
+        });
+      });
+
+      btnRecompute.addEventListener('click', () => {
+        stopPlayback();
+        if (reloadTraceFromInputs()) {
+          updateUI();
+        }
+      });
+
+      btnResetKat.addEventListener('click', () => {
+        stopPlayback();
+        plainInput.value = "00112233445566778899aabbccddeeff";
+        keyInput.value = "000102030405060708090a0b0c0d0e0f";
+        reloadTraceFromInputs();
+        currentStepIndex = 0;
+        updateUI();
+      });
+
+      window.addEventListener('beforeunload', stopPlayback);
+
+      // Initial trace load & render
+      reloadTraceFromInputs();
+      updateUI();
+    })();
+  </script>
+</body>
+</html>
